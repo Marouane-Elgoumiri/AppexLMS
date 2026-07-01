@@ -25,7 +25,7 @@ class AppexLMS extends StatelessWidget {
       title: 'AppexLMS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.splash,
       initialBinding: InitialBinding(),
       getPages: AppPages.pages,
     );

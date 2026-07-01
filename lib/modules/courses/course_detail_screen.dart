@@ -10,7 +10,7 @@ class CourseDetail extends StatelessWidget {
         title: const Text('Course Detail'),
       ),
       body: const Center(
-        child: Text('Course Detail'),
+        child: Text('insert the course detail here'),
       ),
     );
   }

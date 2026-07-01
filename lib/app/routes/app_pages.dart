@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:appex/app/routes/app_routes.dart';
+import 'package:appex/modules/splash/splash_screen.dart';
+import 'package:appex/modules/splash/splash_binding.dart';
 import 'package:appex/modules/auth/auth_screen.dart';
 import 'package:appex/modules/auth/auth_binding.dart';
 import 'package:appex/modules/dashboard/dash_screen.dart';
@@ -15,8 +17,8 @@ class AppPages {
   static final pages = [
     GetPage(
       name: AppRoutes.splash,
-      page: () => const AuthScreen(),
-      binding: AuthBinding(),
+      page: () => const SplashScreen(),
+      binding: SplashBinding(),
     ),
     GetPage(
       name: AppRoutes.login,
@@ -25,7 +27,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.dashboard,
-      page: () => const DashboardScreen(),
+      page: () => const DashScreen(),
       binding: DashBinding(),
     ),
     GetPage(

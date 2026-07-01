@@ -12,6 +12,7 @@ class AppTheme {
       primary: AppColors.primary,
       secondary: AppColors.primaryDark,
       surface: AppColors.surface,
+      surfaceContainerHighest: AppColors.surfaceContainerHighest,
       error: AppColors.error,
       onPrimary: AppColors.background,
       onSurface: AppColors.textPrimary,
@@ -51,7 +52,7 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surfaceVariant,
+      fillColor: AppColors.surfaceContainerHighest,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppSpacing.sm),
         borderSide: const BorderSide(color: AppColors.border),

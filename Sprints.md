@@ -4,8 +4,8 @@
 
 | Sprint | Phase | Duration | Status |
 |--------|-------|----------|--------|
-| 0 | Project Setup & Architecture Foundation | Week 1 | Not Started |
-| 1 | UI Foundations — Netflix-Inspired Dashboard | Week 2-3 | Not Started |
+| 0 | Project Setup & Architecture Foundation | Week 1 | ✅ Completed |
+| 1 | UI Foundations — Netflix-Inspired Dashboard | Week 2-3 | ✅ Completed |
 | 2 | State Management with GetX | Week 4 | Not Started |
 | 3 | Data Layer — Clean Architecture | Week 5 | Not Started |
 | 4a | Database — Supabase/PostgreSQL CRUD | Week 6-7 | Not Started |
@@ -23,23 +23,34 @@
 
 ### Tasks
 
-- [ ] Create Flutter project and set up folder structure (app/, data/, domain/, modules/)
-- [ ] Install GetX and configure initial setup
-- [ ] Set up Supabase project (free tier) and configure client
-- [ ] Define AppTheme with even-number spacing scale
-- [ ] Set up GetX routing and initial bindings
-- [ ] Create placeholder screens for all modules
+- [x] Create Flutter project and set up folder structure (app/, data/, domain/, modules/)
+- [x] Install GetX and configure initial setup
+- [x] Set up Supabase project (free tier) and configure client
+- [x] Define AppTheme with even-number spacing scale
+- [x] Set up GetX routing and initial bindings
+- [x] Create placeholder screens for all modules
 
 ### Key Learnings
 
 - Imperative vs Declarative: Flutter rebuilds the entire widget subtree on state change (declarative), vs manually mutating DOM elements (imperative)
 - Clean Architecture layers: Presentation → Domain ← Data (domain has no dependencies)
+- `get` is a runtime dependency — goes in `dependencies`, not `dev_dependencies`
+- Supabase `anonKey` deprecated → use `publishableKey`
+- GetX bindings: `Get.lazyPut` for lazy injection, `Get.put` for eager (e.g., splash controller)
+
+### Key Fixes Applied
+
+- Moved `get` from dev_dependencies to dependencies
+- Fixed `pubspec.yaml` `assets:` indentation (must be under `flutter:` block)
+- Replaced deprecated `surfaceVariant` with `surfaceContainerHighest` across app
+- Replaced deprecated `colorScheme.background` with `colorScheme.surface`
+- Class name mismatch: `DashboardScreen` → `DashScreen` in app_pages.dart
 
 ### Completion Criteria
 
-- [ ] `flutter run` launches app with placeholder screens
-- [ ] Folder structure matches architecture spec
-- [ ] GetX navigation works between placeholder screens
+- [x] `flutter run` launches app with placeholder screens
+- [x] Folder structure matches architecture spec
+- [x] GetX navigation works between placeholder screens
 
 ---
 
@@ -51,26 +62,55 @@
 
 ### Tasks
 
-- [ ] Design and build Splash Screen
-- [ ] Design and build Login Screen (static, no auth logic yet)
-- [ ] Build Dashboard hero banner section
-- [ ] Build horizontal course carousel rows
-- [ ] Build category filter chips
-- [ ] Build bottom navigation bar
-- [ ] Enforce even-number dimension convention across all screens
-- [ ] Use Expanded/Flexible for responsive layouts
+- [x] Design and build Splash Screen — auto-navigates to login after 2s
+- [x] Design and build Login Screen with overflow protection, logo, email/password fields, login/signup buttons
+- [x] Build Dashboard hero banner section — gradient overlay, featured course, Continue button
+- [x] Build horizontal course carousel rows — Netflix-style scrollable rows
+- [x] Build Dashboard with three CourseCarousel rows (Continue Learning, Popular, New Releases)
+- [x] Build bottom navigation bar (Home, Search, Profile)
+- [x] Enforce even-number dimension convention across all screens using AppSpacing
+- [x] Use SingleChildScrollView with LayoutBuilder for responsive overflow protection
+- [x] Refactor DashScreen from StatefulWidget to GetView<DashController> (preview of Sprint 2)
+- [x] Wire AuthScreen Login button to AuthController.login()
 
 ### Key Learnings
 
 - `Expanded` fills remaining space (forces size), `Flexible` wraps content but can grow
 - Even-number convention: base unit 4px, all padding/margin/sizing use multiples of 4
 - Netflix layout pattern: Column → Hero + multiple horizontal ListView.builder rows
+- SingleChildScrollView + LayoutBuilder for overflow-safe layouts on small devices
+- `BoxFit.contain` for logos (preserves aspect ratio), `BoxFit.cover` for thumbnails (fills space)
+- `GetView<TController>` auto-wires controllers into screens without boilerplate
+- 3 reusable dashboard widgets extracted: HeroBanner, CourseCarousel, CourseCard
+
+### Key Fixes Applied
+
+- Renamed deprecated `surfaceVariant` → `surfaceContainerHighest` across AppColors, AppTheme, CourseCard, HeroBanner
+- Replaced deprecated `colorScheme.background` → `colorScheme.surface` in HeroBanner
+- Replaced `Colors.blue` → `AppColors.primary` for color consistency
+- Replaced `BoxFit.cover` → `BoxFit.contain` on AuthScreen logo to prevent cropping
+- Fixed `DashboardScreen` class name mismatch → `DashScreen` in app_pages.dart
+- Fixed `__` unnecessary underscores in CourseCarousel
+- All hardcoded dimensions (152, 200, 120, 8, 4, 224, 16, 200, 24) replaced with AppSpacing constants
+- **Dashboard overflow (56px)**: Buggy math `AppSpacing.xxxl * AppSpacing.xs` produced 480px carousel row height. Replaced with explicit named constants (`CourseCard.cardHeight = 200`, `HeroBanner.bannerHeight = 200`). Lesson: never multiply spacing constants to compose widget sizes — declare explicit dimensions per widget
+
+### Key Review Session Findings (Definition of Done)
+
+- HeroBanner properly gradient-styled, title/instructor fit, Continue button wired
+- CourseCarousel height now equals `CourseCard.cardHeight` — perfect vertical alignment, no internal overflow
+- CourseCard uses `Flexible` around title text to handle 2-line titles gracefully
+- All `BoxFit` choices reviewed: `contain` for logos (no crop), `cover` for thumbnails (fills space)
+- All theme references use `colorScheme.*` and `textTheme.*` — no direct hex/Color calls in widgets
+- `flutter analyze` — 0 issues
+- `flutter test` — all passed
 
 ### Completion Criteria
 
-- [ ] All screens render correctly on multiple device sizes
-- [ ] No hardcoded odd-number dimensions in UI code
-- [ ] Expanded/Flexible used correctly (no overflow errors)
+- [x] All screens render correctly on multiple device sizes
+- [x] No hardcoded odd-number dimensions in UI code
+- [x] Expanded/Flexible used correctly (no overflow errors)
+- [x] `flutter analyze` — 0 issues
+- [x] `flutter test` — all tests passed
 
 ---
 
