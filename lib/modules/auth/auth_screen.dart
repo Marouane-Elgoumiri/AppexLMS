@@ -40,6 +40,7 @@ class AuthScreen extends GetView<AuthController> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   TextField(
+                    onChanged: (value) => controller.email.value = value,
                     decoration: InputDecoration(
                       hintText: "Email",
                       prefixIcon: Icon(Icons.email_outlined),
@@ -48,20 +49,34 @@ class AuthScreen extends GetView<AuthController> {
                   const SizedBox(height: AppSpacing.md),
                   TextField(
                     obscureText: true,
+                    onChanged: (value) => controller.password.value = value,
                     decoration: InputDecoration(
                       hintText: "Password",
                       prefixIcon: Icon(Icons.lock_outline),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  ElevatedButton(
-                    onPressed: controller.login,
-                    child: Text("Login"),
+                  Obx(
+                    () => ElevatedButton(
+                      onPressed: controller.isFormValid
+                          ? controller.login
+                          : null,
+                      child: Text("Login"),
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  OutlinedButton(
-                    onPressed: () {},
-                    child: Text("Don't have an account? Sign Up"),
+                  GetBuilder<AuthController>(
+                    builder: (controller) {
+                      return TextButton(
+                        onPressed: () => controller.switchToRegister(),
+                        child: Text("Don't have an account? Sign Up"),
+                      );
+                    },
+                  ),
+                  Obx(
+                    () => controller.isLoading.value
+                        ? LinearProgressIndicator()
+                        : const SizedBox.shrink(),
                   ),
                   SizedBox(height: constraints.maxHeight * 0.12),
                 ],

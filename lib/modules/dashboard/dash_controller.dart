@@ -2,6 +2,9 @@ import 'package:get/get.dart';
 
 class DashController extends GetxController {
   final selectedIndex = 0.obs;
+  final isLoading = false.obs;
+  final category = ''.obs;
+  
   final List<Map<String, String>> popularCourses = [
     {'title': 'Flutter Foundations', 'instructor': 'Alice Johnson'},
     {'title': 'Dart for Beginners', 'instructor': 'Bob Smith'},
@@ -28,7 +31,21 @@ class DashController extends GetxController {
     {'title': 'App Deployment Strategies', 'instructor': 'Quinn Allen'},
   ];
 
-  void changePage(int index) {
+  // GetBuilder pattern for refresh
+  DateTime lastRefresh = DateTime.now();
+
+  void changePage(int index) =>
     selectedIndex.value = index;
+
+  void setCategory(String cat) {
+    category.value = cat;
+  }
+
+  Future<void> refreshDashboard() async {
+    isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 1));
+    lastRefresh = DateTime.now();
+    isLoading.value = false;
+    update(); // Notify GetBuilder to rebuild the UI
   }
 }
