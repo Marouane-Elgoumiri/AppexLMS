@@ -1,9 +1,18 @@
 import 'package:get/get.dart';
-import 'package:appex/modules/dashboard/dash_controller.dart';
+
+import '../../domain/usecases/courses/get_courses.dart';
+import 'dash_controller.dart';
 
 class DashBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<DashController>(() => DashController());
+    Get.lazyPut<GetCourses>(() => GetCourses(Get.find()), fenix: true);
+    Get.lazyPut<GetCoursesByCategory>(
+      () => GetCoursesByCategory(Get.find()),
+      fenix: true,
+    );
+    Get.lazyPut<DashController>(
+      () => DashController(getCourses: Get.find(), getByCategory: Get.find()),
+    );
   }
 }

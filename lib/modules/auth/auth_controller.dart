@@ -1,49 +1,109 @@
 import 'package:get/get.dart';
 
+import '../../app/routes/app_routes.dart';
+import '../../core/either.dart';
+import '../../core/errors/failures.dart';
+import '../../core/unit.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/usecases/auth/auth_usecases.dart';
+
 class AuthController extends GetxController {
+  AuthController({
+    required this.login,
+    required this.register,
+    required this.logout,
+  });
+
+  final LoginUseCase login;
+  final RegisterUseCase register;
+  final LogoutUseCase logout;
+
   final isLogged = false.obs;
+  final currentUser = Rxn<User>();
 
   final email = ''.obs;
+  final displayName = ''.obs;
   final password = ''.obs;
   final isPasswordVisible = false.obs;
   final isLoading = false.obs;
+  final errorMessage = RxnString();
 
-  // GetBuilder state (page-level)
   bool isRegistered = false;
 
-  // Validation - used by Obx
-  bool get isEmailValid => 
-    email.value.contains('@') && email.value.contains('.') ;
-  bool get isPasswordValid => 
-    password.value.length >= 6;
-  bool get isFormValid => isEmailValid && isPasswordValid;
+  bool get isEmailValid =>
+      email.value.contains('@') && email.value.contains('.');
+  bool get isPasswordValid => password.value.length >= 6;
+  bool get isFormValid =>
+      isEmailValid && isPasswordValid && email.value.trim().isNotEmpty;
 
-  // Methods
-  void togglePasswordVisibility() => isPasswordVisible.value = !isPasswordVisible.value;
+  void togglePasswordVisibility() =>
+      isPasswordVisible.value = !isPasswordVisible.value;
 
-  Future<void> login() async {
-    isLoading.value = true;
-    await Future.delayed(const Duration(seconds: 2));
-    isLoading.value = false;
-    isLogged.value = true;
-    Get.offAllNamed('/dashboard');
-  }
-  Future<void> switchToRegister() async {
+  void switchToRegister() {
     isRegistered = !isRegistered;
-    update(); // Notify GetBuilder to rebuild the UI
+    errorMessage.value = null;
+    update();
   }
-  Future<void> register() async {
-    isLoading.value = true;
-    await Future.delayed(const Duration(seconds: 2));
-    isLoading.value = false;
-    isLogged.value = true;
-    Get.offAllNamed('/dashboard');
+
+  Future<void> submit() async {
+    if (isRegistered) {
+      await doRegister();
+    } else {
+      await doLogin();
+    }
   }
-  Future<void> logout() async {
+
+  Future<void> doLogin() async {
+    errorMessage.value = null;
     isLoading.value = true;
-    await Future.delayed(const Duration(seconds: 2));
+    final result = await login(
+      email: email.value,
+      password: password.value,
+    );
     isLoading.value = false;
-    isLogged.value = false;
-    Get.offAllNamed('/login');
+    result.fold(
+      _onFailure,
+      (user) {
+        currentUser.value = user;
+        isLogged.value = true;
+        Get.offAllNamed(AppRoutes.dashboard);
+      },
+    );
+  }
+
+  Future<void> doRegister() async {
+    errorMessage.value = null;
+    isLoading.value = true;
+    final result = await register(
+      email: email.value,
+      password: password.value,
+      displayName: displayName.value.isEmpty
+          ? email.value.split('@').first
+          : displayName.value,
+    );
+    isLoading.value = false;
+    result.fold(
+      _onFailure,
+      (user) {
+        currentUser.value = user;
+        isLogged.value = true;
+        Get.offAllNamed(AppRoutes.dashboard);
+      },
+    );
+  }
+
+  Future<void> doLogout() async {
+    isLoading.value = true;
+    final Either<Failure, Unit> result = await logout();
+    isLoading.value = false;
+    result.fold(_onFailure, (_) {
+      currentUser.value = null;
+      isLogged.value = false;
+      Get.offAllNamed(AppRoutes.login);
+    });
+  }
+
+  void _onFailure(Failure failure) {
+    errorMessage.value = failure.message;
   }
 }

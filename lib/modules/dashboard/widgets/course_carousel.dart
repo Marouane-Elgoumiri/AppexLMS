@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:appex/app/theme/app_spacing.dart';
-import 'package:appex/modules/dashboard/widgets/course_card.dart';
+
+import '../../../app/theme/app_spacing.dart';
+import '../../../domain/entities/course.dart';
+import 'course_card.dart';
 
 class CourseCarousel extends StatelessWidget {
-  final String title;
-  final List<dynamic> items;
+  const CourseCarousel({
+    super.key,
+    required this.title,
+    required this.items,
+    this.onTap,
+  });
 
-  const CourseCarousel({super.key, required this.title, required this.items});
+  final String title;
+  final List<Course> items;
+  final void Function(Course course)? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +33,15 @@ class CourseCarousel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             itemCount: items.length,
             separatorBuilder: (_, index) => const SizedBox(width: AppSpacing.md),
-            itemBuilder: (_, index) => CourseCard(
-              title: items[index]['title'] ?? 'No Title',
-              instructor: items[index]['instructor'] ?? 'No Instructor',
-            ),
+            itemBuilder: (_, index) {
+              final course = items[index];
+              return CourseCard(
+                title: course.title,
+                instructor: course.instructor,
+                category: course.category,
+                onTap: onTap == null ? null : () => onTap!(course),
+              );
+            },
           ),
         ),
       ],

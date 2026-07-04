@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:appex/app/theme/app_spacing.dart';
+
+import '../../../app/theme/app_spacing.dart';
 
 class CourseCard extends StatelessWidget {
-  const CourseCard({super.key, required this.title, required this.instructor});
+  const CourseCard({
+    super.key,
+    required this.title,
+    required this.instructor,
+    this.category,
+    this.onTap,
+  });
 
   final String title;
   final String instructor;
+  final String? category;
+  final VoidCallback? onTap;
 
   static const double cardWidth = 152;
   static const double cardHeight = 200;
@@ -14,8 +23,7 @@ class CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return SizedBox(
+    final card = SizedBox(
       width: cardWidth,
       height: cardHeight,
       child: Column(
@@ -27,6 +35,13 @@ class CourseCard extends StatelessWidget {
               width: cardWidth,
               height: imageHeight,
               color: theme.colorScheme.surfaceContainerHighest,
+              alignment: Alignment.center,
+              child: Text(
+                category ?? 'Appex',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -48,5 +63,13 @@ class CourseCard extends StatelessWidget {
         ],
       ),
     );
+
+    return onTap == null
+        ? card
+        : InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+            child: card,
+          );
   }
 }

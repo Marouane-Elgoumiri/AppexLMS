@@ -17,8 +17,8 @@
 | 0      | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
 | 1      | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
 | 2      | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
-| 3      | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
-| 4a     | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
+| 3 (cumulative total) | 26 | 1 | 0 | 27 | 27 | 0 | 0 | n/a |
+| 4a (cumulative total) | 51 | 1 | 0 | 52 | 52 | 0 | 0 | n/a |
 | 4b     | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
 | 5      | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
 | 6      | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0% |
@@ -90,13 +90,13 @@
 
 | # | Test Name | Type | Status | Date | Notes |
 |---|-----------|------|--------|------|-------|
-| 4a.1 | SupabaseUserRepo — create user | Unit | Not Run | - | |
-| 4a.2 | SupabaseUserRepo — read user | Unit | Not Run | - | |
-| 4a.3 | SupabaseUserRepo — update user | Unit | Not Run | - | |
-| 4a.4 | SupabaseCourseRepo — read all courses | Unit | Not Run | - | |
-| 4a.5 | SupabaseCourseRepo — filter by category | Unit | Not Run | - | |
-| 4a.6 | SupabaseEnrollmentRepo — create enrollment | Unit | Not Run | - | |
-| 4a.7 | SupabaseEnrollmentRepo — update progress | Unit | Not Run | - | |
+| 4a.1 | SupabaseUserRepo — create user | Unit | ✅ Pass | Sprint 4a | assertion covered by auth repo test: register Right on success. Tested in `test/data/repositories/supabase_auth_repository_impl_test.dart` |
+| 4a.2 | SupabaseUserRepo — read user | Unit | ✅ Pass | Sprint 4a | `getUserById` → Right on success, Left(NotFoundFailure) on miss |
+| 4a.3 | SupabaseUserRepo — update user | Unit | ⏭ N/A | Sprint 4a | Update user flows through Supabase Auth (signUp/signOut) — covered by 4a.1 and auth logout test. No direct `update()` exists on `UserRepository` yet |
+| 4a.4 | SupabaseCourseRepo — read all courses | Unit | ✅ Pass | Sprint 4a | `test/data/repositories/supabase_course_repository_impl_test.dart` |
+| 4a.5 | SupabaseCourseRepo — filter by category | Unit | ✅ Pass | Sprint 4a | same file |
+| 4a.6 | SupabaseEnrollmentRepo — create enrollment | Unit | ✅ Pass | Sprint 4a | `test/data/repositories/supabase_enrollment_repository_impl_test.dart` |
+| 4a.7 | SupabaseEnrollmentRepo — update progress | Unit | ✅ Pass | Sprint 4a | `markLessonCompleted` Right(Unit) on success, Left(ServerFailure) on error |
 | 4a.8 | RLS — user cannot access other user data | Integration | Not Run | - | |
 | 4a.9 | Real-time — course update reflects on dashboard | Integration | Not Run | - | |
 

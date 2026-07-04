@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:appex/app/theme/app_spacing.dart';
-import 'package:appex/app/routes/app_routes.dart';
-import 'package:appex/modules/dashboard/dash_controller.dart';
-import 'package:appex/modules/dashboard/widgets/course_carousel.dart';
-import 'package:appex/modules/dashboard/widgets/hero_banner.dart';
+
+import '../../app/routes/app_routes.dart';
+import '../../app/theme/app_spacing.dart';
+import 'dash_controller.dart';
+import 'widgets/course_carousel.dart';
+import 'widgets/hero_banner.dart';
 
 class DashScreen extends GetView<DashController> {
   const DashScreen({super.key});
@@ -25,8 +26,8 @@ class DashScreen extends GetView<DashController> {
                     : const SizedBox.shrink(),
               ),
 
-              GetBuilder<DashController>(
-                builder: (_) => Padding(
+              Obx(
+                () => Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
                     vertical: AppSpacing.sm,
@@ -34,14 +35,12 @@ class DashScreen extends GetView<DashController> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Obx(
-                        () => Text(
-                          'Category: ${controller.category.value.isEmpty ? "All" : controller.category.value}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                      Text(
+                        'Category: ${controller.category.value.isEmpty ? "All" : controller.category.value}',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
-                        'Updated: ${_formatTime(controller.lastRefresh)}',
+                        'Updated: ${_formatTime(controller.lastRefresh.value)}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -53,47 +52,70 @@ class DashScreen extends GetView<DashController> {
                 height: AppSpacing.xxl + AppSpacing.xs,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
                   children: ['All', 'Flutter', 'Dart', 'Design', 'Backend']
-                      .map((cat) => Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.sm),
-                            child: Obx(
-                              () => ChoiceChip(
-                                label: Text(cat),
-                                selected: controller.category.value == cat ||
-                                    (cat == 'All' && controller.category.value.isEmpty),
-                                onSelected: (_) => controller.setCategory(cat == 'All' ? '' : cat),
+                      .map(
+                        (cat) => Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.sm),
+                          child: Obx(
+                            () => ChoiceChip(
+                              label: Text(cat),
+                              selected:
+                                  controller.category.value == cat ||
+                                  (cat == 'All' &&
+                                      controller.category.value.isEmpty),
+                              onSelected: (_) => controller.setCategory(
+                                cat == 'All' ? '' : cat,
                               ),
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
               ),
 
               const SizedBox(height: AppSpacing.lg),
 
-              GetBuilder<DashController>(
-                builder: (_) => HeroBanner(
-                  courseTitle: 'Flutter for Beginners',
-                  instructor: 'John Doe',
-                  onContinue: () => Get.toNamed(AppRoutes.courseDetail),
-                ),
+              HeroBanner(
+                courseTitle: 'Flutter for Beginners',
+                instructor: 'John Doe',
+                onContinue: () => Get.toNamed(AppRoutes.courseDetail),
               ),
 
               const SizedBox(height: AppSpacing.lg),
               CourseCarousel(
                 title: 'Continue Learning',
                 items: controller.popularCourses,
+                onTap: _open,
               ),
               const SizedBox(height: AppSpacing.lg),
               CourseCarousel(
                 title: 'Popular Courses',
                 items: controller.recommendedCourses,
+                onTap: _open,
               ),
               const SizedBox(height: AppSpacing.lg),
               CourseCarousel(
                 title: 'New Releases',
                 items: controller.newCourses,
+                onTap: _open,
+              ),
+
+              Obx(
+                () => controller.errorMessage.value == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Text(
+                          controller.errorMessage.value!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
               ),
             ],
           ),
@@ -102,7 +124,12 @@ class DashScreen extends GetView<DashController> {
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(
           currentIndex: controller.selectedIndex.value,
-          onTap: controller.changePage,
+          onTap: (i) {
+            controller.changePage(i);
+            if (i == 2) {
+              Get.toNamed(AppRoutes.profile);
+            }
+          },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
@@ -111,6 +138,10 @@ class DashScreen extends GetView<DashController> {
         ),
       ),
     );
+  }
+
+  void _open(dynamic course) {
+    Get.toNamed(AppRoutes.courseDetail, arguments: course);
   }
 
   String _formatTime(DateTime dt) {
