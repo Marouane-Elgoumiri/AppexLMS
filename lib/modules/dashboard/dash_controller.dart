@@ -25,6 +25,17 @@ class DashController extends GetxController {
   final recommendedCourses = <Course>[].obs;
   final newCourses = <Course>[].obs;
 
+  /// Sprint 5 — category-filtered view, populated when a non-'All' chip is
+  /// selected. Empty when `category.value.isEmpty` (i.e., 'All').
+  final filteredCourses = <Course>[].obs;
+
+  /// True while a category filter fetch is in flight (separate from
+  /// `isLoading` so initial-load spinner and filter spinner don't fight
+  /// over the same indicator).
+  final isFiltering = false.obs;
+
+  final RxnString filterError = RxnString();
+
   static const int _popularTake = 5;
   static const int _recommendedTake = 5;
   static const int _newTake = 5;
@@ -83,20 +94,71 @@ class DashController extends GetxController {
 
   void changePage(int index) => selectedIndex.value = index;
 
-  void setCategory(String cat) => category.value = cat;
+  /// Sprint 5 — selecting a chip now triggers a real filtered fetch:
+  /// 'All' (empty string) clears the filter and restores the carousels;
+  /// any other category swaps the dashboard into filtered-list mode.
+  Future<void> setCategory(String cat) async {
+    category.value = cat;
+    if (cat.isEmpty) {
+      // 'All' — restore the carousel view.
+      filteredCourses.clear();
+      filterError.value = null;
+      return;
+    }
+    isFiltering.value = true;
+    filterError.value = null;
+    final result = await getByCategory(cat);
+    isFiltering.value = false;
+    result.fold(
+      (failure) {
+        filterError.value = failure.message;
+        filteredCourses.clear();
+      },
+      (list) => filteredCourses.assignAll(list),
+    );
+  }
+
+  /// True when the dashboard should render the filtered list view (vs the
+  /// 'All' carousel trio). Reactive via [category].
+  bool get isFilteringActive => category.value.isNotEmpty;
 
   Future<void> refreshDashboard() async {
-    isLoading.value = true;
+    final String activeCategory = category.value;
+    if (activeCategory.isEmpty) {
+      isLoading.value = true;
+    } else {
+      isFiltering.value = true;
+    }
     errorMessage.value = null;
-    final result = await getCourses();
-    isLoading.value = false;
+    filterError.value = null;
+
+    final result = activeCategory.isEmpty
+        ? await getCourses()
+        : await getByCategory(activeCategory);
+
+    if (activeCategory.isEmpty) {
+      isLoading.value = false;
+    } else {
+      isFiltering.value = false;
+    }
     lastRefresh.value = DateTime.now();
 
     result.fold(
-      (failure) => errorMessage.value = failure.message,
+      (failure) {
+        if (activeCategory.isEmpty) {
+          errorMessage.value = failure.message;
+        } else {
+          filterError.value = failure.message;
+          filteredCourses.clear();
+        }
+      },
       (list) {
-        allCourses.assignAll(list);
-        splitCarousels(list);
+        if (activeCategory.isEmpty) {
+          allCourses.assignAll(list);
+          splitCarousels(list);
+        } else {
+          filteredCourses.assignAll(list);
+        }
       },
     );
   }

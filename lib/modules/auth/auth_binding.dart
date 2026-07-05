@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../domain/usecases/auth/auth_usecases.dart';
 import 'auth_controller.dart';
+import 'auth_session.dart';
 
 class AuthBinding extends Bindings {
   @override
@@ -17,6 +18,7 @@ class AuthBinding extends Bindings {
         login: Get.find(),
         register: Get.find(),
         logout: Get.find(),
+        session: Get.find<AuthSession>(),
       ),
     );
   }

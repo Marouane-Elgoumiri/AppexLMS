@@ -29,6 +29,7 @@ import '../../domain/repositories/lesson_repository.dart';
 import '../../domain/repositories/number_trivia_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../env.dart';
+import '../../modules/auth/auth_session.dart';
 
 /// Wires up the entire data layer at app start.
 ///
@@ -61,6 +62,17 @@ class InitialBinding extends Bindings {
       _bindSupabase();
     } else {
       _bindMock();
+    }
+
+    // ── Cross-cutting services (depend on repos bound above) ────────────
+    // AuthSession is the app-wide source of truth for "who is the current
+    // user?" — read by AuthGuard, SplashController, ProfileController, and
+    // CourseController. Must be permanent so it outlives every route.
+    if (!Get.isRegistered<AuthSession>()) {
+      Get.put<AuthSession>(
+        AuthSession(userRepository: Get.find()),
+        permanent: true,
+      );
     }
   }
 

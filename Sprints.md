@@ -331,19 +331,58 @@ Sprint 4b will add a third branch (`_bindMongo()`, wired to MongoDB data sources
 
 ### Tasks
 
-- [ ] **Auth Module:** Login/Register → Supabase Auth → state → navigate to dashboard
-- [ ] **Dashboard Module:** Netflix-style course browsing → filter by category → navigate to detail
-- [ ] **Course Detail Module:** Lesson list, progress tracking, enrollment
-- [ ] **Profile Module:** User info, enrolled courses list, settings
-- [ ] Add navigation guards (redirect to login if not authenticated)
-- [ ] Add loading states and error handling across all screens
+- [x] **Auth Module:** Login/Register → Supabase Auth → state → navigate to dashboard — `AuthController` now proxies through `AuthSession` (a permanent `GetxService` registered in `InitialBinding`), so login/register/logout all stay in sync with the route guard and the Profile module.
+- [x] **Dashboard Module:** Netflix-style course browsing → filter by category → navigate to detail — `DashController.setCategory()` now triggers a `GetCoursesByCategory` fetch; selecting "All" restores the carousel trio, any other chip swaps to the filtered list view. Empty + retry states added via `_ErrorBanner` and `_EmptyState` widgets.
+- [x] **Course Detail Module:** Lesson list, progress tracking, enrollment — `CourseController` now loads `getLessonsForCourse`, hydrates the user's existing enrollment for this course, exposes `enroll()` + `toggleLessonComplete(Lesson)`, and computes a `progress` fraction. UI shows lesson list with per-lesson completion icon, an Enroll button (or "you're enrolled" message), a `LinearProgressIndicator` bar, and the count "X%". `MarkLessonCompleted` use-case wraps the repo call.
+- [x] **Profile Module:** User info, enrolled courses list, settings — `ProfileController` replaces the placeholder. Bootstrap pulls cached session user (or re-fetches via `GetCurrentUser`), then `getEnrollmentsForUser` → `getCourseById` per enrollment to populate `enrolledCourses`. `CourseCarousel` widget reused from dashboard. `doLogout()` clears `AuthSession` and routes to `/login`. Screen handles loading + empty + error states.
+- [x] Add navigation guards (redirect to login if not authenticated) — `AuthGuard` extends `GetMiddleware` and redirects unauthorized users to `/login`; `LoginGuard` redirects authenticated users away from `/login` to `/dashboard`. Guards wired on `/dashboard`, `/course-detail`, `/profile`, `/number-trivia`. Splash now probes `AuthSession.bootstrap()` and routes authenticated users straight to the dashboard (instead of always forcing `/login`).
+- [x] Add loading states and error handling across all screens — every screen now has explicit loading (CircularProgressIndicator / LinearProgressIndicator), error Text + Retry button, and empty-states. Course detail error supports retry calling `loadCourse`. Profile error states for both the user fetch and the enrollments fetch.
+
+### Key Learnings
+
+- **AuthSession as a GetxService**: `Get.lazyPut<AuthController>` (per-route) was a poor fit for an app-wide login-state. Lifting it to a permanent `GetxService` means the route guard, Profile, Course Detail, and Splash can all `Get.find<AuthSession>()` the same instance and observe `currentUser` reactively.
+- **GetMiddleware for route guards**: `@override RouteSettings? redirect(String? route)` returns null to allow or `RouteSettings(name: '/login')` to redirect. Two guards (`AuthGuard` + `LoginGuard`) cover both directions of the auth-flow.
+- **SplashController probes session + waits branding**: uses `Future.wait([session.boot(), Future.delayed(1500ms)])` so the splash timer runs concurrently with the session probe rather than serially — no perceived wait increase.
+- **Don't trust `Either.fold` with async callbacks**: `fold` is synchronous; if the `onRight` callback returns a Future, the outer `Future<void> result.fold(...)` won't await it. The calling code may think the operation completed when the inner async is still running. Fix by making BOTH callbacks return `Future<void>` and `await result.fold(...)`. This bug silently cleared the `enrolledCourses` list in `ProfileController._loadEnrollments` until tests caught it.
+- **Dashboard category filter UX choice**: chips replace the three carousels with a `CourseCarousel` showing filtered results (turns out `CourseCarousel` is flexible enough for both the carousel-mode and a one-row filtered-mode; no new widget needed). The 'All' chip restores the original carousels; empty-filter-result has its own "No courses in {cat}" message.
+- **CourseDetail hydration pattern**: `loadCourse` awaits course fetch + lessons fetch in parallel, then awaits `_hydrateEnrollmentForCourse(courseId)` (which calls `getEnrollmentsForUser` and finds the matching row). Lessons are a "soft failure" — if the lessons repo errors but course loads OK, the screen still shows what it can.
+- **MarkLessonCompleted vs EnrollInCourse use-cases**: enrollment READS go through `EnrollmentRepository` directly in `CourseController` (no use-case wrapper, parity with Sprint 4a's pattern); enrollment WRITES (`enroll`, `markLessonCompleted`) go through use-case wrappers since they need validation + the convention "side effects go through the use-case layer."
+
+### Files added
+
+- `lib/modules/auth/auth_session.dart` — permanent `GetxService`.
+- `lib/app/routes/auth_guard.dart` — `AuthGuard` + `LoginGuard`.
+- `lib/domain/usecases/enrollments/mark_lesson_completed.dart` — wraps the repo method.
+- `lib/domain/usecases/user/get_current_user.dart`, `get_user_by_id.dart` — wraps the user-repo reads.
+- Tests: `test/modules/auth/auth_session_test.dart` (4), `auth_guard_test.dart` (4), `test/modules/profile/profile_controller_test.dart` (5), `test/modules/dashboard/dash_controller_category_test.dart` (5), `test/modules/courses/course_controller_test.dart` (7), `test/modules/profile/profile_screen_widget_test.dart` (1), `test/modules/courses/course_detail_widget_test.dart` (2). Total **28 new tests** (52 → 80 green).
+
+### Files modified
+
+- `lib/app/bindings/initial_binding.dart` — registers `AuthSession` permanently after the data-layer branching.
+- `lib/app/routes/app_pages.dart` — `middlewares: [AuthGuard()]` on guarded routes; `[LoginGuard()]` on `/login`.
+- `lib/modules/splash/splash_controller.dart` — `bootstrap()`-aware routing.
+- `lib/modules/auth/auth_controller.dart` — `AuthSession` injection + `setUser`/`clear` calls on login/register/logout.
+- `lib/modules/auth/auth_binding.dart` — passes `AuthSession` to `AuthController`.
+- `lib/modules/dashboard/dash_controller.dart` — `filteredCourses`, `isFiltering`, `filterError`, `isFilteringActive`, `setCategory` triggers filtered fetch, `refreshDashboard` honors active category.
+- `lib/modules/dashboard/dash_screen.dart` — splits body into `_AllView` (carousels) and `_FilteredView` (single carousel), empty + error + retry widgets, Search tab surfaces SnackBar "coming in a future sprint".
+- `lib/modules/courses/course_binding.dart` — injects `GetLessonsForCourse`, `EnrollInCourse`, `MarkLessonCompleted`, `EnrollmentRepository`.
+- `lib/modules/courses/course_controller.dart` — full rewrite + `loadCourse`, `enroll`, `toggleLessonComplete`, `progress` getter.
+- `lib/modules/courses/course_detail_screen.dart` — full rewrite with lessons list + progress bar + enroll button.
+- `lib/modules/profile/profile_binding.dart` — injects new use-cases + `CourseRepository`.
+- `lib/modules/profile/profile_controller.dart` — full rewrite with `bootstrap`, `_loadEnrollments`, `doLogout`.
+- `lib/modules/profile/profile_screen.dart` — full rewrite using `GetView<ProfileController>`, `CourseCarousel`, identity card, empty enrolled states, logout button.
 
 ### Completion Criteria
 
-- [ ] User can register, login, browse courses, enroll, track progress
-- [ ] All screens handle loading, error, and empty states
-- [ ] Auth guards prevent unauthorized access
-- [ ] Full user journey works end-to-end
+- [x] User can register, login, browse courses, enroll, track progress
+- [x] All screens handle loading, error, and empty states
+- [x] Auth guards prevent unauthorized access
+- [x] Full user journey works end-to-end (verified via unit + widget tests; live run pending `supabase db push` from Sprint 4a)
+
+### Verification
+
+- `flutter analyze` → 0 issues
+- `flutter test` → 80 of 80 passing (was 52 in Sprint 4a; +28 new)
 
 ---
 

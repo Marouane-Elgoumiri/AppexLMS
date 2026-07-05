@@ -6,17 +6,20 @@ import '../../core/errors/failures.dart';
 import '../../core/unit.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/auth/auth_usecases.dart';
+import 'auth_session.dart';
 
 class AuthController extends GetxController {
   AuthController({
     required this.login,
     required this.register,
     required this.logout,
+    required this.session,
   });
 
   final LoginUseCase login;
   final RegisterUseCase register;
   final LogoutUseCase logout;
+  final AuthSession session;
 
   final isLogged = false.obs;
   final currentUser = Rxn<User>();
@@ -64,6 +67,7 @@ class AuthController extends GetxController {
     result.fold(
       _onFailure,
       (user) {
+        session.setUser(user);
         currentUser.value = user;
         isLogged.value = true;
         Get.offAllNamed(AppRoutes.dashboard);
@@ -85,6 +89,7 @@ class AuthController extends GetxController {
     result.fold(
       _onFailure,
       (user) {
+        session.setUser(user);
         currentUser.value = user;
         isLogged.value = true;
         Get.offAllNamed(AppRoutes.dashboard);
@@ -97,6 +102,7 @@ class AuthController extends GetxController {
     final Either<Failure, Unit> result = await logout();
     isLoading.value = false;
     result.fold(_onFailure, (_) {
+      session.clear();
       currentUser.value = null;
       isLogged.value = false;
       Get.offAllNamed(AppRoutes.login);
