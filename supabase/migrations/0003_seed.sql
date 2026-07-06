@@ -1,6 +1,6 @@
 -- 0003_seed.sql
 -- Sprint 4a — seed the same 8 courses + lessons the mock data sources held.
--- Idempotent: every insert uses ON CONFLICT DO NOTHING so `supabase db reset`
+-- Idempotent: each insert uses `where not exists` so `supabase db reset`
 -- followed by `db push` is safe to repeat.
 --
 -- NOTE on auth users / profiles / enrollments:
@@ -23,7 +23,31 @@
 -- Full rationale lives next to that script.
 
 -- ──────────────────────────────────────────────────────────────────────────
--- 3. lessons — 5 per course, matching MockLessonDataSource's pattern
+-- 1. courses — the 8 courses mirrored from MockCourseDataSource (lib/data/
+--    datasources/mock/mock_course_data_source.dart). Idempotent via
+--    `where not exists (select 1 from courses where title = ...)` so re-running
+--    `db push` is safe. The schema (0001_init_schema.sql) does not declare
+--    `title` unique, so we can't use `ON CONFLICT (title) DO NOTHING` without
+--    adding a constraint; the WHERE-NOT-EXISTS form gets the same effect without
+--    a schema change (which would force a DB reset to apply).
+-- ──────────────────────────────────────────────────────────────────────────
+insert into public.courses (title, instructor, category, lesson_count, image_url)
+select * from (values
+    ('Flutter Foundations'::text,         'Alice Johnson'::text,  'Flutter'::text, 12, null::text),
+    ('Dart for Beginners',                'Bob Smith',            'Dart',           10, null),
+    ('UI/UX Design Principles',           'Carol White',          'Design',         14, null),
+    ('State Management Deep Dive',        'David Lee',             'Flutter',         9, null),
+    ('Building Responsive Apps',          'Eva Martinez',          'Flutter',         8, null),
+    ('Backend with Dart Frog',            'Frank Brown',          'Backend',        16, null),
+    ('Advanced Flutter Patterns',         'Grace Taylor',         'Flutter',        11, null),
+    ('Clean Architecture in Dart',        'Henry Wilson',         'Backend',        13, null)
+) as v(title, instructor, category, lesson_count, image_url)
+where not exists (
+    select 1 from public.courses c where c.title = v.title
+);
+
+-- ──────────────────────────────────────────────────────────────────────────
+-- 2. lessons — 5 per course, matching MockLessonDataSource's pattern
 -- ──────────────────────────────────────────────────────────────────────────
 insert into public.lessons (id, course_id, title, "order", duration_seconds)
 select

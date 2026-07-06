@@ -2,6 +2,16 @@
 
 A **Learning Management System** built with Flutter, designed as a guided project to master Flutter architecture and development.
 
+<p align="center">
+  <img src="assets/appexlms_light.png" alt="Flixify Logo" width="200"/>
+</p>
+
+<p align="center">
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter" alt="Flutter"></a>
+  <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart" alt="Dart"></a>
+  <a href="https://firebase.google.com"><img src="https://img.shields.io/badge/Firebase-Cloud%20Firestore-FFCA28?logo=firebase" alt="Firebase"></a>
+</p>
+
 ## Key Concepts
 
 | # | Concept | Focus |
@@ -11,6 +21,8 @@ A **Learning Management System** built with Flutter, designed as a guided projec
 | 3 | UI Principles | Even-number dimensions, Expanded/Flexible, Rows & Columns, Netflix-style UI |
 | 4 | State Management | GetX: GetBuilder, GetxController, .obs, Obx |
 | 5 | Database Integration | CRUD with Supabase (PostgreSQL) and MongoDB |
+
+
 
 ## Architecture
 
@@ -75,6 +87,14 @@ flutter pub get
 # Run the app
 flutter run
 ```
+
+
+## 📸 Screenshots
+
+| Auth Screen | Home | Profile |
+|-------------|---------|--------|
+| ![Auth](assets/preview.png) | ![Home](assets/preview_home.png) | ![Profile](assets/preview_profile.png) |
+))| | | |
 
 ## Project Milestones
 
