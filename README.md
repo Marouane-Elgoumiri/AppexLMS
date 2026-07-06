@@ -93,8 +93,8 @@ flutter run
 
 | Auth Screen | Home | Profile |
 |-------------|---------|--------|
-| ![Auth](assets/preview.png) | ![Home](assets/preview_home.png) | ![Profile](assets/preview_profile.png) |
-))| | | |
+| ![Auth](assets/preview.png) | ![Home](assets/preview_profile.png) | ![Profile](assets/preview_home.png) 
+
 
 ## Project Milestones
 
