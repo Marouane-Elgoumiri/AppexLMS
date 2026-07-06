@@ -96,15 +96,3 @@ flutter run
 | ![Auth](assets/preview.png) | ![Home](assets/preview_profile.png) | ![Profile](assets/preview_home.png) 
 
 
-## Project Milestones
-
-| Phase | Focus | Status |
-|-------|-------|--------|
-| 0 | Project Setup & Architecture Foundation | Not Started |
-| 1 | UI Foundations — Netflix-Inspired Dashboard | Not Started |
-| 2 | State Management with GetX | Not Started |
-| 3 | Data Layer — Clean Architecture | Not Started |
-| 4a | Database — Supabase/PostgreSQL CRUD | Not Started |
-| 4b | Database — MongoDB Comparison | Not Started |
-| 5 | Feature Modules — Full Integration | Not Started |
-| 6 | Polish & Best Practices | Not Started |
